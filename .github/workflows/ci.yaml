@@ -121,10 +121,15 @@ jobs:
           echo "PYTHON_VERSION=${{ matrix.python-version }}" >> $GITHUB_ENV
 
       - name: Setup gfortran
-        uses: awvwgk/setup-fortran@main
+        uses: w-bonelli/setup-fortran@develop
         with:
           compiler: gcc
           version: 12
+
+      - name: Check dylib
+        if: runner.os == 'macOS'
+        run: |
+          stat /opt/local/lib/libgcc/libgfortran.5.dylib
 
       - name: Setup Python
         uses: actions/setup-python@v4
