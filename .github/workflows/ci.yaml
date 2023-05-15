@@ -140,6 +140,14 @@ jobs:
         with:
           compiler: gcc
           version: 11
+      
+      - name: Symlink gfortran libdirs on Mac
+        if: runner.os == 'macOS'
+        run: |
+          ./ci/symlink_gfortran_mac.sh
+          # ls /usr/local/lib/
+          # echo "======================"
+          # ls /usr/local/opt/gcc/lib/gcc/13
 
       - name: Install Dependencies via Micromamba
         uses: mamba-org/provision-with-micromamba@v15
