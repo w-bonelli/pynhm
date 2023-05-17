@@ -40,12 +40,13 @@ jobs:
           pip install ".[lint, test]"
 
       - name: Update version
+        working-directory: ci/scripts
         id: version
         run: |
           ref="${{ github.ref_name }}"
           version="${ref#"v"}"
-          python ci/scripts/update_version.py -v "$version"
-          python -c "import pynhm; print('Version: ', pynhm.__version__)"
+          python update_version.py -v "$version"
+          python -c "import pywatershed; print('Version: ', pywatershed.__version__)"
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Touch changelog
@@ -91,7 +92,8 @@ jobs:
           path: ${{ steps.update-changelog.outputs.changelog }}
       
       - name: Format Python files
-        run: python ci/scripts/pull_request_prepare.py
+        working-directory: ci/scripts
+        run: python pull_request_prepare.py
 
       - name: Push release branch
         env:
@@ -160,7 +162,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           version=$(python ci/scripts/update_version.py -g)
-          title="pynhm $version"
+          title="pywatershed $version"
           notes=$(cat "changelog/CHANGELOG_$version.md" | grep -v "### Version $version")
           gh release create "$version" \
             --target main \

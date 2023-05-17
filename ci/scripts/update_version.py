@@ -8,9 +8,9 @@ from typing import NamedTuple
 
 from filelock import FileLock
 
-_project_name = "pynhm"
+_project_name = "pywatershed"
 _project_root_path = Path(__file__).parent.parent
-_version_py_path = _project_root_path / "pynhm" / "version.py"
+_version_py_path = _project_root_path / "pywatershed" / "version.py"
 
 
 class Version(NamedTuple):
@@ -108,11 +108,9 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent(
             """\
-            Update version information stored in version.txt in the project root,
-            as well as several other files in the repository. If --version is not
-            provided, the version number will not be changed. A file lock is held
-            to synchronize file access. The version tag must comply with standard
-            '<major>.<minor>.<patch>' format conventions for semantic versioning.
+            Update version information stored in version.py. If --version is not
+            provided, the version number will not be changed. The number should
+            follow the semantic versioning convention '<major>.<minor>.<patch>'.
             """
         ),
     )
