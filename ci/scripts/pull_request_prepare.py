@@ -16,7 +16,7 @@ except ModuleNotFoundError:
 
 uncomment if/when isort used
 print("running isort...")
-os.system("isort -v ../../pynhm")
+os.system("isort -v ../../pywatershed")
 
 print("running black...")
-os.system("black -v ../../pynhm")
+os.system("black -v ../../pywatershed")
