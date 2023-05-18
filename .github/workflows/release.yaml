@@ -49,8 +49,17 @@ jobs:
           python -c "import pywatershed; print('Version: ', pywatershed.__version__)"
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Touch changelog
-        run: touch HISTORY.md
+      - name: Build package
+        run: python -m build
+      
+      - name: Check package
+        run: twine check --strict dist/*
+      
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist
 
       - name: Generate changelog
         id: cliff
@@ -67,7 +76,7 @@ jobs:
           # move changelog
           clog="CHANGELOG_${{ steps.version.outputs.version }}.md"
           echo "changelog=$clog" >> $GITHUB_OUTPUT
-          sudo cp "${{ steps.cliff.outputs.changelog }}" "$clog"
+          sudo mv "${{ steps.cliff.outputs.changelog }}" "$clog"
           
           # show current release changelog
           cat "$clog"
@@ -78,84 +87,30 @@ jobs:
           sed -i 's/#### Fix/#### Bug fixes/' "$clog"
           sed -i 's/#### Refactor/#### Refactoring/' "$clog"
           sed -i 's/#### Test/#### Testing/' "$clog"
-          
-          cat "$clog" HISTORY.md > temp_history.md
-          sudo mv temp_history.md HISTORY.md
-          
-          # show full changelog
-          cat HISTORY.md
 
-      - name: Upload changelog
+      - name: Upload changelog artifact
         uses: actions/upload-artifact@v3
         with:
           name: changelog
           path: ${{ steps.update-changelog.outputs.changelog }}
-      
-      - name: Format Python files
-        working-directory: ci/scripts
-        run: python pull_request_prepare.py
 
-      - name: Push release branch
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          ver="${{ steps.version.outputs.version }}"
-          changelog=$(cat ${{ steps.update-changelog.outputs.changelog }} | grep -v "### Version $ver")
-          
-          # remove this release's changelog so we don't commit it
-          # the changes have already been prepended to HISTORY.md
-          rm ${{ steps.update-changelog.outputs.changelog }}
-          rm -f CHANGELOG.md
-          
-          # commit and push changes
-          git config core.sharedRepository true
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "ci(release): set version to ${{ steps.version.outputs.version }}, update changelog"
-          git push origin "${{ github.ref_name }}"
-
-          title="Release $ver"
-          body='
-          # Release '$ver'
-          
-          The release can be approved by merging this pull request into `main`. This will trigger jobs to publish the release to PyPI and reinitialize `main` for the next development cycle, incrementing the minor version number.
-          
-          ## Changelog
-          
-          '$changelog'
-          '
-          gh pr create -B "main" -H "${{ github.ref_name }}" --title "$title" --draft --body "$body"
-
-  release:
-    name: Draft release
-    # runs only when changes are merged to main
-    if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          ref: main
-        
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.8
-
-      - name: Install Python dependencies
-        run: |
-          pip install --upgrade pip
-          pip install .
-          pip install ".[test]"
-
-      # actions/download-artifact won't look at previous workflow runs but we need to in order to get changelog
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
+      # maybe shouldn't update the release branch, so it's truly
+      # a snapshot of main branch at release time, including SHA
+      # 
+      # - name: Update release branch
+      #   env:
+      #     GITHUB_TOKEN: ${{ github.token }}
+      #   run: |
+      #     ver="${{ steps.version.outputs.version }}"
+      #     changelog=$(cat ${{ steps.update-changelog.outputs.changelog }} | grep -v "### Version $ver")
+      #     
+      #     # commit and push changes
+      #     git config core.sharedRepository true
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      #     git add -A
+      #     git commit -m "ci(release): set version to ${{ steps.version.outputs.version }}"
+      #     git push origin "${{ github.ref_name }}"
 
       - name: Draft release
         env:
@@ -165,7 +120,7 @@ jobs:
           title="pywatershed $version"
           notes=$(cat "changelog/CHANGELOG_$version.md" | grep -v "### Version $version")
           gh release create "$version" \
-            --target main \
+            --target "${{ github.sha }}" \
             --title "$title" \
             --notes "$notes" \
             --draft \
@@ -173,9 +128,9 @@ jobs:
 
   publish:
     name: Publish package
-    # runs only after release is published (manually promoted from draft)
+    # runs only when GitHub release is published (manually promoted from draft)
     if: github.event_name == 'release' && github.repository_owner == 'EC-USGS'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
@@ -194,11 +149,13 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          pip install build twine
-          pip install .
+          pip install twine
 
-      - name: Build package
-        run: python -m build
+      - name: Download package artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist
       
       - name: Check package
         run: twine check --strict dist/*
@@ -209,7 +166,7 @@ jobs:
   reset:
     name: Draft reset PR
     if: ${{ github.event_name == 'release' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
@@ -240,7 +197,7 @@ jobs:
           repository: ${{ github.repository }}
           releases-only: true
 
-      - name: Draft pull request
+      - name: Draft reset PR
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
@@ -272,4 +229,4 @@ jobs:
 
           Updates `main` for the next development cycle following a successful release. Increments the minor version number.
           '
-          gh pr create -B "main" -H "$reset_branch" --title "Reinitialize main branch" --draft --body "$body"
+          gh pr create -B "main" -H "$reset_branch" --title "Reset main branch" --draft --body "$body"

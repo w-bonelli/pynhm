@@ -182,7 +182,7 @@ The contents of directories at this level is described. Therein you may discover
 .github/    Github actions for deploying continuous integration (CI)
 autotest/   pywatershed package testing using pytest
 bin/        PRMS executables distributed
-ci/         Python environments for CI
+ci/         scripts and Python environments for CI
 doc/        Package/code documentation source code
 examples/   How to use the package, mostly jupyter notebooks
 prms_src/   PRMS source used for generating executables in bin/
@@ -191,7 +191,6 @@ reference/  Ancillary materials for development
 resources/  Static stuff like images
 test_data/  Data used for automated testing
 ```
-
 
 Disclaimer
 ==========
