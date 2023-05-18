@@ -119,7 +119,7 @@ jobs:
           body='
           # Release '$ver'
           
-          The release can be approved by merging this pull request into `main`. This will trigger jobs to publish the release to PyPI and reset `develop` from `main`, incrementing the minor version number.
+          The release can be approved by merging this pull request into `main`. This will trigger jobs to publish the release to PyPI and reinitialize `main` for the next development cycle, incrementing the minor version number.
           
           ## Changelog
           
@@ -266,10 +266,10 @@ jobs:
           git commit -m "ci(release): update to development version $version"
           git push -u origin $reset_branch
 
-          # create PR into develop
+          # create PR back into main
           body='
           # Reinitialize for development
 
-          Updates the `develop` branch from `main` following a successful release. Increments the minor version number.
+          Updates `main` for the next development cycle following a successful release. Increments the minor version number.
           '
-          gh pr create -B "develop" -H "$reset_branch" --title "Reinitialize develop branch" --draft --body "$body"
+          gh pr create -B "main" -H "$reset_branch" --title "Reinitialize main branch" --draft --body "$body"
