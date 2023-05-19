@@ -5,6 +5,7 @@ channels:
   - nodefaults
   - bioconda
 dependencies:
+  - python=3.9
   - epiweeks
   - black
   - isort
