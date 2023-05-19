@@ -2,6 +2,15 @@
 
 This document describes the utility scripts in this directory.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Preparing for PRs](#preparing-for-prs)
+- [Updating version](#updating-version)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Preparing for PRs
 
 The `pull_request_prepare.py` script lints Python source code files by running `black` and `isort` on the `pywatershed` subdirectory. This script should be run before opening a pull request, as CI will fail if the code is not properly formatted. For instance, from the project root:
