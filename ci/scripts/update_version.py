@@ -9,7 +9,7 @@ from typing import NamedTuple
 from filelock import FileLock
 
 _project_name = "pywatershed"
-_project_root_path = Path(__file__).parent.parent
+_project_root_path = Path(__file__).parent.parent.parent
 _version_py_path = _project_root_path / _project_name / "version.py"
 
 
