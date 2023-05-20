@@ -43,7 +43,7 @@ Prototype an EC watershed model: "pywatershed"
 
 ## Installation
 
-To install the software you will need Python >= 3.9. The `pywatershed` package is [available on PyPI](https://pypi.org/project/pywatershed/) and can be installed with:
+To install the software you will need Python 3.9 or 3.10. The `pywatershed` package is [available on PyPI](https://pypi.org/project/pywatershed/) and can be installed with:
 
 ```
 pip install pywatershed
