@@ -71,7 +71,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install wheel
-          pip install -r ./ci/requirements/environment.txt
+          pip install .
+          pip install ".[lint]"
 
       - name: Version info
         run: |
@@ -114,7 +115,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -145,12 +146,12 @@ jobs:
       
       - name: Link gfortran dylibs on Mac
         if: runner.os == 'macOS'
-        run: ci/scripts/symlink_gfortran_mac.sh
+        run: .github/scripts/symlink_gfortran_mac.sh
 
       - name: Install Dependencies via Micromamba
         uses: mamba-org/provision-with-micromamba@v15
         with:
-          environment-file: ./ci/requirements/environment.yml
+          environment-file: environment.yml
           cache-downloads: true
           cache-env: true
           extra-specs: |

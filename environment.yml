@@ -1,4 +1,4 @@
-name: pyws_nb
+name: pywatershed
 channels:
   - conda-forge
   - nodefaults
