@@ -48,8 +48,8 @@ jobs:
       - name: Setup micromamba
         uses: mamba-org/provision-with-micromamba@main
         with:
-          environment-file: examples/examples_env.yml
-          environment-name: pyws_nb
+          environment-file: environment.yml
+          environment-name: pywatershed
           cache-env: true
           # cache-env-key: "${{runner.os}}-${{runner.arch}}-py${{matrix.python-version}}-${{env.TODAY}}"
 
