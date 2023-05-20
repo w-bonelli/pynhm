@@ -10,6 +10,7 @@ from filelock import FileLock
 
 _project_name = "pywatershed"
 _project_root_path = Path(__file__).parent.parent.parent
+_version_txt_path = _project_root_path / "version.txt"
 _version_py_path = _project_root_path / _project_name / "version.py"
 
 
@@ -66,6 +67,15 @@ _initial_version = Version(0, 0, 1)
 _current_version = Version.from_file(_version_py_path)
 
 
+def update_version_txt(version: Version, approve: bool = False):
+    with open(_version_txt_path, "w") as f:
+        ver_str = str(version)
+        if not approve:
+            ver_str += "+"
+        f.write(str(ver_str))
+    print(f"Updated {_version_txt_path} to version {ver_str}")
+
+
 def update_version_py(timestamp: datetime, version: Version):
     with open(_version_py_path, "w") as f:
         f.write(
@@ -82,6 +92,7 @@ def update_version_py(timestamp: datetime, version: Version):
 def update_version(
     timestamp: datetime = datetime.now(),
     version: Version = None,
+    approve: bool = False,
 ):
     lock_path = Path(_version_py_path.name + ".lock")
     try:
@@ -94,6 +105,7 @@ def update_version(
         )
 
         with lock:
+            update_version_txt(version, approve)
             update_version_py(timestamp, version)
     finally:
         try:
@@ -121,6 +133,13 @@ if __name__ == "__main__":
         help="Specify the release version",
     )
     parser.add_argument(
+        "-a",
+        "--approve",
+        required=False,
+        action="store_true",
+        help="Indicate release is approved (defaults to false for development status)",
+    )
+    parser.add_argument(
         "-g",
         "--get",
         required=False,
@@ -137,4 +156,5 @@ if __name__ == "__main__":
             version=Version.from_string(args.version)
             if args.version
             else _current_version,
+            approve=args.approve,
         )

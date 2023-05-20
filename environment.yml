@@ -1,36 +1,41 @@
-name: pyws-docs
+name: pywatershed
 channels:
-  # Don't change to pkgs/main, as it causes random timeouts in readthedocs
   - conda-forge
   - nodefaults
+  - pyviz
   - bioconda
 dependencies:
-  - python=3.9
-  - epiweeks
-  - black
-  - isort
-  - jinja2<3.1
-  - flake8
-  - pylint
-  - networkx
+  - epiweeks  
   - netCDF4
+  - networkx
   - numpy
   - numba
-  - pandas
+  - pandas>=1.4.0
+  - pint
   - pip
   - pytest
   - pytest-cov
   - pytest-env
   - pytest-order
   - pytest-xdist
-  - python<3.11
   - pyyaml
+  - cartopy
+  - geopandas
+  - geoviews
+  - holoviews
+  - hvplot
+  - bash_kernel
+  - git
   - ipython
-  - sphinx
-  - sphinx-book-theme
-  - sphinx-autosummary-accessors
-  - sphinx-copybutton
+  - jupyter
+  - jupyterlab
+  - nbconvert
+  - jupyter_contrib_nbextensions
+  - nb_conda_kernels
+  - pydot
+  - shapely<2.0.0
   - pip:
+      - click != 8.1.0
       - black
       - isort
       - flake8
@@ -38,4 +43,3 @@ dependencies:
       - git+https://github.com/modflowpy/flopy.git
       - modflow-devtools
       - git+https://github.com/pydata/xarray.git
-      - -e ../..

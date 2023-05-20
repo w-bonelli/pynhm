@@ -40,7 +40,7 @@ jobs:
           pip install ".[lint, test]"
 
       - name: Update version
-        working-directory: ci/scripts
+        working-directory: .github/scripts
         id: version
         run: |
           ref="${{ github.ref_name }}"
@@ -116,7 +116,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          version=$(python ci/scripts/update_version.py -g)
+          version=$(python .github/scripts/update_version.py -g)
           title="pywatershed $version"
           notes=$(cat "changelog/CHANGELOG_$version.md" | grep -v "### Version $version")
           gh release create "$version" \
@@ -210,10 +210,10 @@ jobs:
           minor_version=$(echo "${{ steps.latest_tag.outputs.tag }}" | cut -d. -f2)
           patch_version=0
           version="$major_version.$((minor_version + 1)).$patch_version"
-          python ci/scripts/update_version.py -v "$version"
+          python .github/scripts/update_version.py -v "$version"
 
           # format Python files
-          python ci/scripts/pull_request_prepare.py
+          python .github/scripts/pull_request_prepare.py
 
           # commit and push reset branch
           git config core.sharedRepository true
