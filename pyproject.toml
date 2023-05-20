@@ -57,6 +57,7 @@ test = [
     "pywatershed[lint]",
     "coverage",
     "flaky",
+    "flopy",
     "filelock",
     "modflow-devtools",
     "pytest",
