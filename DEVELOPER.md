@@ -2,6 +2,26 @@
 
 This document describes how to set up a development environment, install dependencies, compile C/Fortran code, generate example data, and run the tests and example notebooks.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Requirements](#requirements)
+  - [Git](#git)
+  - [Compilers](#compilers)
+  - [Python](#python)
+    - [Creating a virtual environment](#creating-a-virtual-environment)
+      - [Conda](#conda)
+      - [Pip](#pip)
+    - [Installing `pywatershed` in development mode](#installing-pywatershed-in-development-mode)
+    - [F2PY](#f2py)
+- [Testing](#testing)
+- [Branching model](#branching-model)
+- [Miscellaneous](#miscellaneous)
+  - [Locating the root](#locating-the-root)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Requirements
 
 ### Git
@@ -64,7 +84,7 @@ Once the python environment and dependencies are established and activated (e.g.
 pip install -e .
 ```
 
-### F2PY
+#### F2PY
 
 The numpy extension F2PY is used to provide fortran compiled kernels of core calculations to boost
 performance. F2PY is documented [within numpy](https://numpy.org/doc/stable/f2py/index.html). This
@@ -101,4 +121,18 @@ pytest -v -n=8
 
 All tests should pass, XPASS, or XFAIL. XFAIL is an expected failure. Substitute `-n auto` to automatically use all available cores on your machine.
 
-## Notebooks
+## Branching model
+
+This project uses the [git flow](https://nvie.com/posts/a-successful-git-branching-model/): development occurs on the `develop` branch, while `main` is reserved for the state of the latest release. Development PRs are typically squashed to `develop`, to avoid merge commits. At release time, release branches are merged to `main`, and then `main` is merged back into `develop`.
+
+## Miscellaneous
+
+### Locating the root
+
+Python scripts often need to reference files elsewhere in the project. To allow scripts to be run from anywhere in the project hierarchy, scripts should locate the project root relative to themselves, then use paths relative to the root for file access, rather than using relative paths (e.g., `../some/path`).
+
+For a script in a subdirectory of the root, for instance, the conventional approach would be:
+
+```Python
+project_root_path = Path(__file__).parent.parent
+```
