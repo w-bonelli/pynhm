@@ -2,13 +2,17 @@
 
 This document describes release procedures, conventions, and utilities for `pywatershed`.
 
-This project follows the [git flow](https://nvie.com/posts/a-successful-git-branching-model/) branching model: development occurs on the `develop` branch, while `main` is reserved for the state of the latest release. Releases follow [semantic version](https://semver.org/) conventions. Minor and major releases will typically branch from `develop`, with patch releases branching from `main`.
+## Conventions
 
-The release procedure is mostly automated. The workflow is defined in `.github/workflows/release.yml` and triggers when a release or patch branch is pushed to this repo.
+- Releases follow the [git flow](https://nvie.com/posts/a-successful-git-branching-model/).
+- Release numbers follow [semantic version](https://semver.org/) conventions.
+- Minor and major releases branch from `develop`. Patches branch from `main`.
 
 ## Releasing `pywatershed`
 
-To release a new version of `pywatershed`:
+The release procedure is mostly automated. The workflow is defined in `.github/workflows/release.yml` and triggers when a release or patch branch is pushed to this repo.
+
+To release a new version:
 
 1. Create a release branch from `develop` or a patch branch from `main`.
 
@@ -26,9 +30,9 @@ To release a new version of `pywatershed`:
     - Upload the package and changelog as artifacts
     - Draft a PR against `main` with the updated version files and cumulative changelog. The cumulative `HISTORY.md` is version-controlled, release changelogs are not.
 
-3. Inspect the package and changelog. If they look OK, merge the PR to `main`.
+3. Inspect the package and changelog. If they look good, merge the PR to `main`.
 
-    **Note**: it is critical to *merge* the PR to `main`, not squash as is conventional for PRs on `develop`. Merging to `main` preserves commit history and ensures `develop` and `main` remain synchronized. Squashing will cause `develop` and `main` to diverge.
+    **Note**: it is critical to *merge* the PR to `main`, not squash as is conventional for development PRs. Squashing causes `develop` and `main` to diverge. Merging to `main` preserves commit history and ensures `develop` and `main` don't diverge.
 
     Merging the PR will trigger another job to draft a [GitHub release](https://github.com/EC-USGS/pywatershed/releases). The release is not yet publicly visible at this point. The release notes are autofilled as the changelog since the last release.
 
@@ -39,7 +43,7 @@ To release a new version of `pywatershed`:
     - Update `version.txt` and `pywatershed/version.py` to match the just-released version, with a '+' appended to the version number in `version.txt` to indicate preliminary/development status.
     - Draft a PR against `develop` with the updated version files and the updates previously merged to `main`.
 
- 5. Merge the PR to `develop`. As above, it is critical to *merge* the PR, not squash, to preserve history and keep `develop` and `main` from diverging. Subsequent development PRs may be squashed to `develop` as usual.
+ 5. Merge the PR to `develop`. As above, it is important to *merge* the PR, not squash, to preserve history and keep `develop` and `main` from diverging. 
 
  ## Utility scripts
 
