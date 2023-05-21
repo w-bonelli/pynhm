@@ -9,13 +9,13 @@ version: 2
 sphinx:
   configuration: doc/conf.py
 
-# Duild docs in additional formats such as PDF and ePub
+# Build docs in additional formats such as PDF and ePub
 formats: all
 
 build:
   os: ubuntu-22.04
   tools:
-    python: mambaforge-4.10
+    python: "3.9"
 
 python:
   install:
