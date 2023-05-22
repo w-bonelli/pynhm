@@ -41,6 +41,49 @@ jobs:
           extra-specs: |
             python=3.9
             conda
+      
+      - name: Checkout MODFLOW 6
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.MF6_REMOTE }}
+          ref: ${{ env.MF6_REF }}
+          path: modflow6
+
+      - name: Update flopy MODFLOW 6 classes
+        working-directory: modflow6/autotest
+        run: |
+          python update_flopy.py
+
+      - name: Install pywatershed
+        run: |
+          pip install .
+
+      - name: Version info
+        run: |
+          pip -V
+          pip list
+
+      - name: Run available domains with PRMS and convert csv output to NetCDF
+        working-directory: test_data/scripts
+        run: |
+          pytest -v -n=auto --durations=0 test_run_domains.py
+          pytest -v -n=auto --durations=0 test_nc_domains.py
+
+      - name: List all NetCDF files in test_data directory
+        working-directory: test_data
+        run: |
+          find . -name "*.nc"
+
+      - name: Run tests
+        working-directory: autotest
+        run: pytest
+          -v
+          -n=auto
+          --durations=0
+          --all_domains
+          --cov=pywatershed
+          --cov-report=xml
+          --junitxml=pytest.xml
 
       - name: Update version
         id: version
@@ -54,18 +97,6 @@ jobs:
 
       - name: Format files
         run: python .github/scripts/pull_request_prepare.py
-
-      - name: Run tests
-        working-directory: autotest
-        run: pytest -v -n=auto --durations=0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Upload package artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: dist
-          path: dist
 
       - name: Touch changelog
         run: touch HISTORY.md
