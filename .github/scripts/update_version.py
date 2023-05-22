@@ -6,7 +6,7 @@ from os import PathLike
 from pathlib import Path
 from typing import NamedTuple
 
-from filelock import FileLock
+
 
 _project_name = "pywatershed"
 _project_root_path = Path(__file__).parent.parent.parent
@@ -94,6 +94,8 @@ def update_version(
     version: Version = None,
     approve: bool = False,
 ):
+    from filelock import FileLock   
+
     lock_path = Path(_version_py_path.name + ".lock")
     try:
         lock = FileLock(lock_path)
