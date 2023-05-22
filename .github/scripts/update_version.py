@@ -37,8 +37,7 @@ class Version(NamedTuple):
     @classmethod
     def from_file(cls, path: PathLike) -> "Version":
         lines = [
-            line.rstrip("\n")
-            for line in open(Path(path).expanduser().absolute(), "r")
+            line.rstrip("\n") for line in open(Path(path).expanduser().absolute(), "r")
         ]
         vmajor = vminor = vpatch = None
         for line in lines:
