@@ -15,6 +15,9 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
 
       - name: Checkout release branch
