@@ -14,7 +14,6 @@ try:
 except ModuleNotFoundError:
     print("black not installed\n\tInstall using pip install black")
 
-uncomment if/when isort used
 print("running isort...")
 os.system("isort -v ../../pywatershed")
 
