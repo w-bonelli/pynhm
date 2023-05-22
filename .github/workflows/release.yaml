@@ -213,6 +213,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      id-token: write  # mandatory for trusted publishing
+    environment:  # requires a 'pypi' environment in repo settings
+      name: pypi
+      url: https://pypi.org/p/pywatershed
     steps:
 
       - name: Checkout main branch
@@ -239,14 +243,16 @@ jobs:
       - name: Check package
         run: twine check --strict dist/*
 
-      - name: Upload package
+      - name: Upload package artifact
         uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist
 
-      - name: Publish to PyPI
-        run: python -m twine upload dist/*
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
 
   reset:
     name: Draft reset PR
