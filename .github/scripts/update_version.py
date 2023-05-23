@@ -6,8 +6,6 @@ from os import PathLike
 from pathlib import Path
 from typing import NamedTuple
 
-
-
 _project_name = "pywatershed"
 _project_root_path = Path(__file__).parent.parent.parent
 _version_txt_path = _project_root_path / "version.txt"
@@ -37,8 +35,7 @@ class Version(NamedTuple):
     @classmethod
     def from_file(cls, path: PathLike) -> "Version":
         lines = [
-            line.rstrip("\n")
-            for line in open(Path(path).expanduser().absolute(), "r")
+            line.rstrip("\n") for line in open(Path(path).expanduser().absolute(), "r")
         ]
         vmajor = vminor = vpatch = None
         for line in lines:
@@ -94,7 +91,7 @@ def update_version(
     version: Version = None,
     approve: bool = False,
 ):
-    from filelock import FileLock   
+    from filelock import FileLock
 
     lock_path = Path(_version_py_path.name + ".lock")
     try:
