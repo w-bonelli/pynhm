@@ -1,8 +1,8 @@
 import os
 import pathlib as pl
-from platform import processor
 import sys
 from fnmatch import fnmatch
+from platform import processor
 
 import pytest
 
@@ -101,7 +101,6 @@ def enforce_scheduler(test_dir):
 def collect_simulations(domain_list: list, force: bool):
     simulations = {}
     for test_dir in test_dirs:
-
         for pth in test_dir.iterdir():
             # checking for prcp.cbh ensure this is a self-contained run (all
             # files in repo)
@@ -110,7 +109,6 @@ def collect_simulations(domain_list: list, force: bool):
                 and pth.is_file()
                 and pth.name == "control.test"
             ):
-
                 if len(domain_list) and (test_dir.name not in domain_list):
                     continue
 

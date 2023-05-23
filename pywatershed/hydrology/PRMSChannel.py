@@ -8,7 +8,7 @@ from pywatershed.base.storageUnit import StorageUnit
 
 from ..base.adapter import adaptable
 from ..base.control import Control
-from ..constants import SegmentType, nan, zero
+from ..constants import SegmentType, nan, numba_num_threads, zero
 
 try:
     from ..PRMSChannel_f import calc_muskingum_mann as _calculate_fortran
@@ -157,6 +157,9 @@ class PRMSChannel(StorageUnit):
             dict: initial values for named variables
         """
         return {
+            "channel_sroff_vol": nan,
+            "channel_ssres_flow_vol": nan,
+            "channel_gwres_flow_vol": nan,
             "channel_outflow_vol": nan,
             "seg_lateral_inflow": zero,
             "seg_upstream_inflow": zero,
@@ -167,7 +170,11 @@ class PRMSChannel(StorageUnit):
     @staticmethod
     def get_mass_budget_terms():
         return {
-            "inputs": ["sroff_vol", "ssres_flow_vol", "gwres_flow_vol"],
+            "inputs": [
+                "channel_sroff_vol",
+                "channel_ssres_flow_vol",
+                "channel_gwres_flow_vol",
+            ],
             "outputs": ["channel_outflow_vol"],
             "storage_changes": ["seg_stor_change"],
         }
@@ -181,7 +188,7 @@ class PRMSChannel(StorageUnit):
 
     def _set_initial_conditions(self) -> None:
         # initialize channel segment storage
-        self.seg_outflow = self.segment_flow_init
+        self.seg_outflow[:] = self.segment_flow_init
         return
 
     def _initialize_channel_data(self) -> None:
@@ -253,9 +260,7 @@ class PRMSChannel(StorageUnit):
         # only calculate Kcoef for cells with velocities greater than zero
         idx = velocity > 0.0
         Kcoef[idx] = self.seg_length[idx] / velocity[idx]
-        Kcoef = np.where(
-            self.segment_type == SegmentType.LAKE.value, 24.0, Kcoef
-        )
+        Kcoef = np.where(self.segment_type == SegmentType.LAKE.value, 24.0, Kcoef)
         Kcoef = np.where(Kcoef < 0.01, 0.01, Kcoef)
         self._Kcoef = np.where(Kcoef > 24.0, 24.0, Kcoef)
 
@@ -296,9 +301,7 @@ class PRMSChannel(StorageUnit):
         d = np.where(np.abs(d) < 1e-6, 0.0001, d)
         self._c0 = (-(self._Kcoef * self.x_coef) + (0.5 * self._ts)) / d
         self._c1 = ((self._Kcoef * self.x_coef) + (0.5 * self._ts)) / d
-        self._c2 = (
-            self._Kcoef - (self._Kcoef * self.x_coef) - (0.5 * self._ts)
-        ) / d
+        self._c2 = (self._Kcoef - (self._Kcoef * self.x_coef) - (0.5 * self._ts)) / d
 
         # Short travel time
         idx = self._c2 < 0.0
@@ -360,16 +363,21 @@ class PRMSChannel(StorageUnit):
                 # mass is being discarded in a way that has to be coordinated
                 # with other parts of the code.
                 # This code shuold be removed evenutally.
-                self.sroff_vol[ihru] = zero
-                self.ssres_flow_vol[ihru] = zero
-                self.gwres_flow_vol[ihru] = zero
+                self.channel_sroff_vol[ihru] = zero
+                self.channel_ssres_flow_vol[ihru] = zero
+                self.channel_gwres_flow_vol[ihru] = zero
                 continue
+
+            else:
+                self.channel_sroff_vol[ihru] = self.sroff_vol[ihru]
+                self.channel_ssres_flow_vol[ihru] = self.ssres_flow_vol[ihru]
+                self.channel_gwres_flow_vol[ihru] = self.gwres_flow_vol[ihru]
 
             # cubicfeet to cfs
             lateral_inflow = (
-                self.sroff_vol[ihru]
-                + self.ssres_flow_vol[ihru]
-                + self.gwres_flow_vol[ihru]
+                self.channel_sroff_vol[ihru]
+                + self.channel_ssres_flow_vol[ihru]
+                + self.channel_gwres_flow_vol[ihru]
             ) / (s_per_time)
 
             self.seg_lateral_inflow[iseg] += lateral_inflow
@@ -379,6 +387,14 @@ class PRMSChannel(StorageUnit):
             import numba as nb
 
             if not hasattr(self, "_muskingum_mann_numba"):
+                numba_msg = f"{self.name} jit compiling with numba "
+                nb_parallel = (numba_num_threads is not None) and (
+                    numba_num_threads > 1
+                )
+                if nb_parallel:
+                    numba_msg += f"and using {numba_num_threads} threads"
+                print(numba_msg, flush=True)
+
                 # This is annoying that long integers on windows are 32bit
                 if platform.system() == "Windows":
                     self._muskingum_mann_numba = nb.njit(
@@ -484,9 +500,7 @@ class PRMSChannel(StorageUnit):
             msg = f"Invalid calc_method={self._calc_method} for {self.name}"
             raise ValueError(msg)
 
-        self.seg_stor_change[:] = (
-            self._seg_inflow - self.seg_outflow
-        ) * s_per_time
+        self.seg_stor_change[:] = (self._seg_inflow - self.seg_outflow) * s_per_time
 
         self.channel_outflow_vol[:] = (
             np.where(self._outflow_mask, self.seg_outflow, zero)

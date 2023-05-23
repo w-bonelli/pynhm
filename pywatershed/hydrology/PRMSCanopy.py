@@ -162,12 +162,12 @@ class PRMSCanopy(StorageUnit):
             import numba as nb
 
             if not hasattr(self, "_calculate_numba"):
-                numba_msg = f"{self.name} using numba "
+                numba_msg = f"{self.name} jit compiling with numba "
                 nb_parallel = (numba_num_threads is not None) and (
                     numba_num_threads > 1
                 )
                 if nb_parallel:
-                    numba_msg += f"with {numba_num_threads} threads"
+                    numba_msg += f"and using {numba_num_threads} threads"
                 print(numba_msg, flush=True)
 
                 # JLM: note. I gave up on specifying signatures because it
@@ -248,9 +248,9 @@ class PRMSCanopy(StorageUnit):
                 #     ),
                 #     fastmath=True,
                 # )(self._calculate_procedural)
-                self._calculate_numba = nb.njit(
-                    fastmath=True, parallel=nb_parallel
-                )(self._calculate_procedural)
+                self._calculate_numba = nb.njit(fastmath=True, parallel=nb_parallel)(
+                    self._calculate_procedural
+                )
 
             # <
             (
@@ -408,9 +408,7 @@ class PRMSCanopy(StorageUnit):
             raise ValueError(msg)
 
         # <
-        self.hru_intcpstor_change[:] = (
-            self.hru_intcpstor - self.hru_intcpstor_old
-        )
+        self.hru_intcpstor_change[:] = self.hru_intcpstor - self.hru_intcpstor_old
 
         return
 
@@ -531,10 +529,7 @@ class PRMSCanopy(StorageUnit):
                             # if there is no snowpack and no snowfall, then apparently, grasses
                             # can intercept rain.
                             # IF ( pkwater_ante(i)<DNEARZERO .AND. netsnow<NEARZERO ) THEN
-                            if (
-                                pkwater_ante[i] < DNEARZERO
-                                and netsnow < NEARZERO
-                            ):
+                            if pkwater_ante[i] < DNEARZERO and netsnow < NEARZERO:
                                 intcpstor, netrain = intercept(
                                     hru_rain[i],
                                     stor_max_rain,
@@ -636,9 +631,7 @@ class PRMSCanopy(StorageUnit):
         return intcp_stor, net_precip
 
     @staticmethod
-    def update_net_precip(
-        precip, stor_max, covden, intcp_stor, net_precip, idx
-    ):
+    def update_net_precip(precip, stor_max, covden, intcp_stor, net_precip, idx):
         net_precip[idx] = precip[idx] * (1.0 - covden[idx])
         intcp_stor[idx] += precip[idx]
         for i in idx[0]:

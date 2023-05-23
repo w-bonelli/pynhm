@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - "*"
+      - "!v[0-9]+.[0-9]+.[0-9]+*"
   pull_request:
     branches:
       - "*"
+      - "!v[0-9]+.[0-9]+.[0-9]+*"
 
 jobs:
 
@@ -46,8 +48,8 @@ jobs:
       - name: Setup micromamba
         uses: mamba-org/provision-with-micromamba@main
         with:
-          environment-file: examples/examples_env.yml
-          environment-name: pyws_nb
+          environment-file: environment.yml
+          environment-name: pywatershed
           cache-env: true
           # cache-env-key: "${{runner.os}}-${{runner.arch}}-py${{matrix.python-version}}-${{env.TODAY}}"
 

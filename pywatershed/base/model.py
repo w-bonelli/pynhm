@@ -64,6 +64,7 @@ class Model:
             vars = deepcopy(class_vars)
             c_inputs = inputs.pop(comp)
             _ = vars.pop(comp)
+
             self._inputs_from[comp] = {}
             # inputs_from_prev[comp] = {}
             # inputs
@@ -97,13 +98,10 @@ class Model:
             if comp in class_dict.keys():
                 self.process_order += [comp]
 
-        missing_processes = set(self.process_order).difference(
-            set(class_dict.keys())
-        )
+        missing_processes = set(self.process_order).difference(set(class_dict.keys()))
         if missing_processes:
             raise ValueError(
-                f"Process {missing_processes} not currently "
-                f"handled by Model class."
+                f"Process {missing_processes} not currently " f"handled by Model class."
             )
 
         # If inputs dont come from other processes, assume they come from
@@ -124,9 +122,7 @@ class Model:
         # instantiate processes: instance dict
         self.processes = {}
         for process in self.process_order:
-            process_inputs = {
-                input: None for input in class_dict[process].get_inputs()
-            }
+            process_inputs = {input: None for input in class_dict[process].get_inputs()}
 
             # This is a hack. Need to make StorageUnit a subclass of a more
             # general model/element/process class
@@ -147,9 +143,7 @@ class Model:
             self.process_input_from[process] = {}
             for input, frm in self._inputs_from[process].items():
                 if not frm:
-                    self.process_input_from[process][input] = file_inputs[
-                        input
-                    ]
+                    self.process_input_from[process][input] = file_inputs[input]
                 else:
                     self.process_input_from[process][input] = frm[0]
                     self.processes[process].set_input_to_adapter(
@@ -178,7 +172,6 @@ class Model:
                 load_n_time_batches=self._load_n_time_batches,
             )
         for process in self.process_order:
-            self.process_input_from[process] = {}
             for input, frm in self._inputs_from[process].items():
                 if not frm:
                     fname = file_inputs[input]._fname

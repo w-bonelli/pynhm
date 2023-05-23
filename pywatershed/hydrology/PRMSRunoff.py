@@ -259,9 +259,7 @@ class PRMSRunoff(StorageUnit):
             i = j
             if self.dprst_frac[i] > 0.0:
                 if self.dprst_depth_avg[i] == 0.0:
-                    raise Exception(
-                        f"dprst_fac > and dprst_depth_avg == 0 for HRU {i}"
-                    )
+                    raise Exception(f"dprst_fac > and dprst_depth_avg == 0 for HRU {i}")
 
                 # calculate open and closed volumes (acre-inches) of depression
                 # storage by HRU
@@ -298,39 +296,27 @@ class PRMSRunoff(StorageUnit):
                     self.op_flow_thres[i] * self.dprst_vol_open_max[i]
                 )
                 if self.dprst_vol_open[i] > 0.0:
-                    open_vol_r = (
-                        self.dprst_vol_open[i] / self.dprst_vol_open_max[i]
-                    )
+                    open_vol_r = self.dprst_vol_open[i] / self.dprst_vol_open_max[i]
                     if open_vol_r < NEARZERO:
                         frac_op_ar = 0.0
                     elif open_vol_r > 1.0:
                         frac_op_ar = 1.0
                     else:
-                        frac_op_ar = np.exp(
-                            self.va_open_exp[i] * np.log(open_vol_r)
-                        )
-                    self.dprst_area_open[i] = (
-                        self.dprst_area_open_max[i] * frac_op_ar
-                    )
+                        frac_op_ar = np.exp(self.va_open_exp[i] * np.log(open_vol_r))
+                    self.dprst_area_open[i] = self.dprst_area_open_max[i] * frac_op_ar
                     if self.dprst_area_open[i] > self.dprst_area_open_max[i]:
                         self.dprst_area_open[i] = self.dprst_area_open_max[i]
 
                 # Closed depression surface area for each HRU:
                 if self.dprst_vol_clos[i] > 0.0:
-                    clos_vol_r = (
-                        self.dprst_vol_clos[i] / self.dprst_vol_clos_max[i]
-                    )
+                    clos_vol_r = self.dprst_vol_clos[i] / self.dprst_vol_clos_max[i]
                     if clos_vol_r < NEARZERO:
                         frac_cl_ar = 0.0
                     elif clos_vol_r > 1.0:
                         frac_cl_ar = 1.0
                     else:
-                        frac_cl_ar = np.exp(
-                            self.va_clos_exp[i] * np.log(clos_vol_r)
-                        )
-                    self.dprst_area_clos[i] = (
-                        self.dprst_area_clos_max[i] * frac_cl_ar
-                    )
+                        frac_cl_ar = np.exp(self.va_clos_exp[i] * np.log(clos_vol_r))
+                    self.dprst_area_clos[i] = self.dprst_area_clos_max[i] * frac_cl_ar
                     if self.dprst_area_clos[i] > self.dprst_area_clos_max[i]:
                         self.dprst_area_clos[i] = self.dprst_area_clos_max[i]
 
@@ -341,15 +327,10 @@ class PRMSRunoff(StorageUnit):
                 ) / self.hru_area[i]
                 self.dprst_stor_hru_old[i] = self.dprst_stor_hru[i]
 
-                if (
-                    self.dprst_vol_open_max[i] + self.dprst_vol_clos_max[i]
-                    > 0.0
-                ):
+                if self.dprst_vol_open_max[i] + self.dprst_vol_clos_max[i] > 0.0:
                     self.dprst_vol_frac[i] = (
                         self.dprst_vol_open[i] + self.dprst_vol_clos[i]
-                    ) / (
-                        self.dprst_vol_open_max[i] + self.dprst_vol_clos_max[i]
-                    )
+                    ) / (self.dprst_vol_open_max[i] + self.dprst_vol_clos_max[i])
         return
 
     def _advance_variables(self) -> None:
@@ -376,12 +357,12 @@ class PRMSRunoff(StorageUnit):
             import numba as nb
 
             if not hasattr(self, "_calculate_numba"):
-                numba_msg = f"{self.name} using numba "
+                numba_msg = f"{self.name} jit compiling with numba "
                 nb_parallel = (numba_num_threads is not None) and (
                     numba_num_threads > 1
                 )
                 if nb_parallel:
-                    numba_msg += f"with {numba_num_threads} threads"
+                    numba_msg += f"and using {numba_num_threads} threads"
                 print(numba_msg, flush=True)
 
                 self._calculate_numba = nb.njit(
@@ -584,14 +565,10 @@ class PRMSRunoff(StorageUnit):
         # <
         self.infil_hru[:] = self.infil * self.hru_frac_perv
 
-        self.hru_impervstor_change[:] = (
-            self.hru_impervstor - self.hru_impervstor_old
-        )
-        self.dprst_stor_hru_change[:] = (
-            self.dprst_stor_hru - self.dprst_stor_hru_old
-        )
+        self.hru_impervstor_change[:] = self.hru_impervstor - self.hru_impervstor_old
+        self.dprst_stor_hru_change[:] = self.dprst_stor_hru - self.dprst_stor_hru_old
 
-        self.sroff_vol = self.sroff * self.control.params.hru_in_to_cf
+        self.sroff_vol[:] = self.sroff * self.control.params.hru_in_to_cf
 
         return
 
@@ -828,9 +805,7 @@ class PRMSRunoff(StorageUnit):
                         if hru_impervevap[i] < 0.0:
                             hru_impervevap[i] = 0.0
                         imperv_evap[i] = imperv_evap[i] / imperv_frac
-                        imperv_stor[i] = (
-                            imperv_stor[i] - avail_et / imperv_frac
-                        )
+                        imperv_stor[i] = imperv_stor[i] - avail_et / imperv_frac
                         avail_et = 0.0
 
                     # <
@@ -842,9 +817,7 @@ class PRMSRunoff(StorageUnit):
             # <
             # cdl -- saving sroff here
             if dprst_chk == ACTIVE:
-                dprst_stor_hru[i] = (
-                    dprst_vol_open[i] + dprst_vol_clos[i]
-                ) / hruarea
+                dprst_stor_hru[i] = (dprst_vol_open[i] + dprst_vol_clos[i]) / hruarea
             # <
             sroff[i] = srunoff
 
@@ -1169,9 +1142,7 @@ class PRMSRunoff(StorageUnit):
             dprst_evap_open = 0.0
             dprst_evap_clos = 0.0
             if dprst_area_open > 0.0:
-                dprst_evap_open = min(
-                    dprst_area_open * dprst_avail_et, dprst_vol_open
-                )
+                dprst_evap_open = min(dprst_area_open * dprst_avail_et, dprst_vol_open)
                 if dprst_evap_open / hru_area > unsatisfied_et:
                     dprst_evap_open = unsatisfied_et * hru_area
                 if dprst_evap_open > dprst_vol_open:
@@ -1180,9 +1151,7 @@ class PRMSRunoff(StorageUnit):
                 dprst_vol_open = dprst_vol_open - dprst_evap_open
 
             if dprst_area_clos > 0.0:
-                dprst_evap_clos = min(
-                    dprst_area_clos * dprst_avail_et, dprst_vol_clos
-                )
+                dprst_evap_clos = min(dprst_area_clos * dprst_avail_et, dprst_vol_clos)
                 if dprst_evap_clos / hru_area > unsatisfied_et:
                     dprst_evap_clos = unsatisfied_et * hru_area
                 if dprst_evap_clos > dprst_vol_clos:
@@ -1276,6 +1245,7 @@ class PRMSRunoff(StorageUnit):
 
         if ca_fraction > carea_max:
             ca_fraction = carea_max
+
         srpp = ca_fraction * pptp
         infil = infil - srpp
         srp = srp + srpp
@@ -1283,9 +1253,7 @@ class PRMSRunoff(StorageUnit):
         return infil, srp, ca_fraction
 
     @staticmethod
-    def check_capacity(
-        soil_moist_prev, soil_moist_max, snowinfil_max, infil, srp
-    ):
+    def check_capacity(soil_moist_prev, soil_moist_max, snowinfil_max, infil, srp):
         """
         Fill soil to soil_moist_max, if more than capacity restrict
         infiltration by snowinfil_max, with excess added to runoff
@@ -1295,6 +1263,7 @@ class PRMSRunoff(StorageUnit):
         if excess > snowinfil_max:
             srp = srp + excess - snowinfil_max
             infil = snowinfil_max + capacity
+
         return infil, srp
 
     @staticmethod

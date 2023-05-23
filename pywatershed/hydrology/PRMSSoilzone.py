@@ -168,7 +168,7 @@ class PRMSSoilzone(StorageUnit):
             "soil_lower_ratio": zero,
             "soil_lower_max": nan,  # completely set later
             "soil_moist": nan,  # sm_climateflow
-            "soil_moist_prev": nan,  # sm_climateflow
+            "soil_moist_prev": zero,  # sm_climateflow
             "soil_moist_tot": nan,  # completely set later
             "soil_rechr": nan,  # sm_climateflow
             "soil_rechr_change": nan,  # sm_climateflow
@@ -251,12 +251,8 @@ class PRMSSoilzone(StorageUnit):
         # variables
         if self.control.config["init_vars_from_file"] in [0, 2, 5]:
             # these are set in sm_climateflow
-            self.soil_moist[:] = (
-                self.soil_moist_init_frac * self.soil_moist_max
-            )
-            self.soil_rechr[:] = (
-                self.soil_rechr_init_frac * self.soil_rechr_max
-            )
+            self.soil_moist[:] = self.soil_moist_init_frac * self.soil_moist_max
+            self.soil_rechr[:] = self.soil_rechr_init_frac * self.soil_rechr_max
         else:
             # call ctl_data%read_restart_variable(
             #    'soil_moist', this%soil_moist)
@@ -351,8 +347,7 @@ class PRMSSoilzone(StorageUnit):
                 self.pref_flow_thrsh[wh_land_or_swale],
             )
             self.pref_flow_stor[wh_land_or_swale] = (
-                self.ssres_stor[wh_land_or_swale]
-                - self.slow_stor[wh_land_or_swale]
+                self.ssres_stor[wh_land_or_swale] - self.slow_stor[wh_land_or_swale]
             )
 
         else:
@@ -370,9 +365,7 @@ class PRMSSoilzone(StorageUnit):
         self.soil_zone_max = (
             self.sat_threshold + self.soil_moist_max * self.hru_frac_perv
         )
-        self.soil_moist_tot = (
-            self.ssres_stor + self.soil_moist * self.hru_frac_perv
-        )
+        self.soil_moist_tot = self.ssres_stor + self.soil_moist * self.hru_frac_perv
 
         self.soil_lower = self.soil_moist - self.soil_rechr
         self.soil_lower_max = self.soil_moist_max - self.soil_rechr_max
@@ -397,17 +390,17 @@ class PRMSSoilzone(StorageUnit):
             import numba as nb
 
             if not hasattr(self, "_calculate_numba"):
-                numba_msg = f"{self.name} using numba "
+                numba_msg = f"{self.name} jit compiling with numba "
                 nb_parallel = (numba_num_threads is not None) and (
                     numba_num_threads > 1
                 )
                 if nb_parallel:
-                    numba_msg += f"with {numba_num_threads} threads"
+                    numba_msg += f"and using {numba_num_threads} threads"
                 print(numba_msg, flush=True)
 
-                self._calculate_numba = nb.njit(
-                    fastmath=True, parallel=nb_parallel
-                )(self._calculate_numpy)
+                self._calculate_numba = nb.njit(fastmath=True, parallel=nb_parallel)(
+                    self._calculate_numpy
+                )
                 self._compute_gwflow_numba = nb.njit(fastmath=True)(
                     self._compute_gwflow
                 )
@@ -936,7 +929,10 @@ class PRMSSoilzone(StorageUnit):
                 # PRMSIV Step 9
                 # Compute slow contribution to interflow, if any
                 if slow_stor[hh] > epsilon:
-                    (slow_stor[hh], slow_flow[hh],) = compute_interflow(
+                    (
+                        slow_stor[hh],
+                        slow_flow[hh],
+                    ) = compute_interflow(
                         slowcoef_lin[hh],
                         slowcoef_sq[hh],
                         ssresin,
@@ -950,7 +946,10 @@ class PRMSSoilzone(StorageUnit):
 
             # <
             if (slow_stor[hh] > epsilon) and (ssr2gw_rate[hh] > zero):
-                (ssr_to_gw[hh], slow_stor[hh],) = compute_gwflow(
+                (
+                    ssr_to_gw[hh],
+                    slow_stor[hh],
+                ) = compute_gwflow(
                     ssr2gw_rate[hh],
                     ssr2gw_exp[hh],
                     slow_stor[hh],
@@ -1207,9 +1206,7 @@ class PRMSSoilzone(StorageUnit):
         )
 
     @staticmethod
-    def _compute_interflow(
-        coef_lin, coef_sq, ssres_in, storage, inter_flow
-    ) -> tuple:
+    def _compute_interflow(coef_lin, coef_sq, ssres_in, storage, inter_flow) -> tuple:
         # inter_flow is in inches for the timestep
         # JLM: this is being way too clever. I am not sure there's a need for
         # this function. The theory shows 3 oneline equations, this is
@@ -1242,9 +1239,7 @@ class PRMSSoilzone(StorageUnit):
             c2 = one - np.exp(-c3)
 
             if one + c1 * c2 > zero:
-                inter_flow = ssres_in + (
-                    (sos * (one + c1) * c2) / (one + c1 * c2)
-                )
+                inter_flow = ssres_in + ((sos * (one + c1) * c2) / (one + c1 * c2))
             else:
                 inter_flow = ssres_in
 
