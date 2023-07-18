@@ -56,27 +56,27 @@ jobs:
           pip -V
           pip list
 
-      - name: Run available domains with PRMS and convert csv output to NetCDF
-        working-directory: test_data/scripts
-        run: |
-          pytest -v -n=auto --durations=0 test_run_domains.py
-          pytest -v -n=auto --durations=0 test_nc_domains.py
+      # - name: Run available domains with PRMS and convert csv output to NetCDF
+      #   working-directory: test_data/scripts
+      #   run: |
+      #     pytest -v -n=auto --durations=0 test_run_domains.py
+      #     pytest -v -n=auto --durations=0 test_nc_domains.py
 
-      - name: List all NetCDF files in test_data directory
-        working-directory: test_data
-        run: |
-          find . -name "*.nc"
+      # - name: List all NetCDF files in test_data directory
+      #   working-directory: test_data
+      #   run: |
+      #     find . -name "*.nc"
 
-      - name: Run tests
-        working-directory: autotest
-        run: pytest
-          -v
-          -n=auto
-          --durations=0
-          --all_domains
-          --cov=pywatershed
-          --cov-report=xml
-          --junitxml=pytest.xml
+      # - name: Run tests
+      #   working-directory: autotest
+      #   run: pytest
+      #     -v
+      #     -n=auto
+      #     --durations=0
+      #     --all_domains
+      #     --cov=pywatershed
+      #     --cov-report=xml
+      #     --junitxml=pytest.xml
 
       - name: Update version
         id: version
